@@ -1,0 +1,1131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Problema de Física: Pelota Rodando del Techo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    MathJax = {
+      tex: {
+        inlineMath: [['$', '$'], ['\\(', '\\)']] // Configure MathJax to process $...$ for inline math
+      },
+      svg: {
+        fontCache: 'global' // Optimize font caching
+      }
+    };
+  </script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
+  <style>
+    /* Definición de variables CSS para un tema oscuro y coherente */
+    :root {
+      --bg-primary: #0F0F0F; /* Fondo principal muy oscuro */
+      --text-main: #E0E0E0; /* Texto principal claro */
+      --text-secondary: #B0B0B0; /* Texto secundario, para descripciones */
+      --heading-color-1: #60A5FA; /* Azul vibrante para h1 */
+      --heading-color-2: #A7F3D0; /* Verde menta para h2 */
+      --heading-color-3: #FCD34D; /* Amarillo suave para h3 */
+      --highlight-color: #FFD700; /* Dorado para texto fuerte/resultados */
+      --link-color: #60A5FA; /* Azul para enlaces */
+      --link-hover-color: #3B82F6; /* Azul oscuro al pasar el mouse */
+      --section-border: #2A2A2A; /* Borde sutil para secciones */
+      --equation-bg: #1A1A1A; /* Fondo para bloques de ecuaciones */
+      /* Colores específicos para la sección de animación p5.js */
+      --canvas-bg: #282c34; /* Fondo del lienzo - gris oscuro */
+      --canvas-border-color: #a0d9e7; /* Borde del lienzo - azul claro */
+      --animation-button-bg: #61dafb; /* Fondo botón de animación - cian claro */
+      --animation-button-hover-bg: #21a1f1; /* Fondo botón de animación al pasar mouse - azul */
+      --animation-button-text: #282c34; /* Color texto botón de animación - oscuro */
+      /* Colores para elementos gráficos en p5.js */
+      --ball-color: #ff6347; /* Rojo tomate */
+      --path-color: #00ff7f; /* Verde esmeralda (trayectoria) */
+      --roof-color: #7f5c5b; /* Marrón teja */
+      --ground-color: #556b2f; /* Verde oliva oscuro */
+      --vector-initial-color: #FFFF00; /* Amarillo brillante para v0 */
+      --vector-impact-color: #FF00FF; /* Magenta para v_impacto */
+      --axis-color: #6B7280; /* Gris oscuro para los ejes */
+    }
+
+    /* Estilos base para el cuerpo y contenedor principal */
+    body {
+      font-family: 'Inter', sans-serif; /* Fuente más legible para el cuerpo */
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.8;
+      letter-spacing: 0.02em; /* Ligeramente más ajustado */
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-primary);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+    .container {
+      max-width: 960px; /* Ancho máximo para legibilidad */
+      padding: 1.5rem;
+      margin: 0 auto;
+    }
+
+    /* Estilos para títulos */
+    h1, h2, h3 {
+      font-family: 'Anton', sans-serif;
+      text-transform: uppercase;
+      letter-spacing: 0.15em;
+      line-height: 1.2;
+      margin-bottom: 0.75rem;
+      font-weight: 400; /* Anton solo tiene 400 */
+    }
+    h1 {
+      font-size: 3rem;
+      color: var(--heading-color-1);
+      text-align: center;
+      margin-bottom: 2rem;
+      text-shadow: 0 0 10px rgba(96, 165, 250, 0.7); /* Sombra más pronunciada */
+    }
+    h2 {
+      font-size: 2.4rem;
+      color: var(--heading-color-2);
+      margin-top: 3rem;
+      border-bottom: 1px solid var(--section-border);
+      padding-bottom: 0.5rem;
+    }
+    h3 {
+      font-size: 1.8rem;
+      color: var(--heading-color-3);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    /* Estilos para párrafos y enlaces */
+    p {
+      color: var(--text-main);
+      margin-bottom: 1rem;
+    }
+    strong {
+      color: var(--highlight-color);
+      font-weight: 600; /* Inter semibold */
+    }
+    a {
+      color: var(--link-color);
+      text-decoration: none;
+      transition: color 0.3s ease;
+    }
+    a:hover {
+      color: var(--link-hover-color);
+      text-decoration: underline;
+    }
+    ul, ol {
+      margin-bottom: 1rem;
+    }
+
+    /* Estilos para secciones (tarjetas) */
+    section {
+      background-color: var(--bg-primary);
+      border: 1px solid var(--section-border);
+      border-radius: 0.75rem;
+      padding: 2rem; /* Más padding para una sensación más espaciosa */
+      margin-bottom: 1.5rem;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6); /* Sombra más profunda */
+    }
+
+    /* Estilos para bloques de ecuaciones MathJax */
+    .equation {
+      background-color: var(--equation-bg);
+      color: var(--text-main);
+      padding: 1rem 1.5rem; /* Más padding horizontal */
+      border-radius: 0.5rem;
+      text-align: center;
+      margin: 1.5rem 0;
+      border: 1px solid var(--section-border);
+      overflow-x: auto; /* Permite scroll horizontal en ecuaciones largas */
+      white-space: nowrap;
+      max-width: 100%;
+      -webkit-overflow-scrolling: touch;
+    }
+    .mjx-chtml {
+      color: var(--text-main) !important; /* Fuerza el color del texto MathJax */
+      font-size: 1.15rem !important; /* Ajuste de tamaño de fuente MathJax */
+    }
+
+    /* Estilos para botones de explicación */
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+      flex-wrap: wrap;
+    }
+    .step-header h3 {
+      margin-bottom: 0;
+      flex-grow: 1;
+    }
+    .explanation-btn {
+      background-color: #4A5568; /* Gris oscuro para el botón */
+      color: #E0E0E0;
+      padding: 0.6rem 1.2rem; /* Mayor padding */
+      font-size: 0.95rem; /* Ligeramente más grande */
+      letter-spacing: 0.05em;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      border: none;
+      transition: background-color 0.3s ease, transform 0.2s ease;
+      margin-left: 1rem;
+      flex-shrink: 0;
+    }
+    .explanation-btn:hover {
+      background-color: #2D3748; /* Más oscuro en hover */
+      transform: translateY(-1px); /* Efecto 3D sutil */
+    }
+    .explanation-btn:active {
+      transform: translateY(0);
+    }
+    .explanation-content {
+      background-color: #1A202C; /* Fondo más oscuro para la explicación */
+      color: var(--text-secondary); /* Texto secundario para contraste */
+      padding: 1rem 1.5rem;
+      border-radius: 0.5rem;
+      margin-top: 1rem;
+      border: 1px solid var(--section-border);
+      box-shadow: inset 0 0 8px rgba(0, 0, 0, 0.4); /* Sombra interna para profundidad */
+      display: none;
+      font-size: 0.95rem; /* Texto más pequeño dentro de la explicación */
+    }
+
+    /* Estilos para el contenedor del canvas de p5.js */
+    #canvas-container {
+      width: 100%;
+      max-width: 600px;
+      aspect-ratio: 1 / 1; /* Mantiene la proporción cuadrada */
+      border: 3px solid var(--canvas-border-color);
+      border-radius: 10px;
+      background-color: var(--canvas-bg);
+      box-sizing: border-box;
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin: 2rem auto; /* Más margen vertical */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6); /* Sombra más fuerte */
+      overflow: hidden;
+      user-select: none; /* Deshabilita la selección de texto dentro del canvas */
+    }
+    canvas {
+      display: block;
+      border-radius: 8px; /* Borde interior del canvas */
+      background-color: var(--canvas-bg);
+    }
+
+    /* Estilos para el botón de reinicio de la animación */
+    #reset-btn {
+      margin-top: 20px;
+      background-color: var(--animation-button-bg);
+      color: var(--animation-button-text);
+      border: none;
+      border-radius: 30px; /* Botón más redondeado */
+      padding: 14px 50px;
+      font-size: 1.1rem;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 6px 20px rgba(0, 116, 184, 0.75); /* Sombra vibrante */
+      transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+    #reset-btn:hover {
+      background-color: var(--animation-button-hover-bg);
+      transform: translateY(-3px); /* Lift más pronunciado */
+      box-shadow: 0 8px 25px rgba(0, 116, 184, 0.9);
+    }
+    #reset-btn:active {
+      transform: translateY(0);
+      box-shadow: 0 3px 10px rgba(0, 116, 184, 0.5);
+    }
+
+    /* Media queries para responsividad */
+    @media (max-width: 768px) {
+      h1 {
+        font-size: 2.5rem;
+      }
+      h2 {
+        font-size: 2rem;
+      }
+      h3 {
+        font-size: 1.6rem;
+      }
+      section {
+        padding: 1.5rem;
+      }
+    }
+
+    @media (max-width: 640px) {
+      body {
+        font-size: 0.9rem;
+        line-height: 1.6;
+      }
+      .container {
+        padding: 1rem;
+      }
+      h1 {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      h2 {
+        font-size: 1.8rem;
+        margin-top: 1.5rem;
+      }
+      h3 {
+        font-size: 1.4rem;
+        margin-top: 1rem;
+      }
+      section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+      }
+      .equation {
+        padding: 0.75rem;
+        margin: 1rem 0;
+      }
+      .step-header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      .step-header h3 {
+        margin-bottom: 0.5rem;
+      }
+      .explanation-btn {
+        margin-left: 0;
+        width: 100%;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+      }
+      .explanation-content {
+        padding: 0.8rem 1rem;
+        font-size: 0.85rem;
+      }
+      #reset-btn {
+        padding: 10px 30px;
+        font-size: 0.95rem;
+        margin-top: 15px;
+      }
+      #canvas-container {
+        margin: 1.5rem auto;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container mx-auto">
+    <section>
+      <h1>Movimiento Parabólico: Pelota Rodando del Techo</h1>
+      <nav aria-label="Índice de contenidos">
+        <h2 class="text-xl md:text-2xl lg:text-3xl">Índice de Contenidos</h2>
+        <ul class="list-disc pl-6 text-base md:text-lg">
+          <li><a href="#intro" class="hover:underline">Introducción al Problema</a></li>
+          <li><a href="#solution" class="hover:underline">Solución Paso a Paso</a></li>
+          <li><a href="#animation-section" class="hover:underline">Simulación Interactiva</a></li>
+          <li><a href="#conclusion" class="hover:underline">Conclusión y Resultados Finales</a></li>
+        </ul>
+      </nav>
+    </section>
+
+    <section id="intro">
+      <h2 class="text-xl md:text-2xl lg:text-3xl">Introducción al Problema</h2>
+      <p>
+        Este ejercicio explora el movimiento parabólico de una pelota que, tras rodar por la inclinación de un techo, es lanzada al aire. Nuestro objetivo es analizar su trayectoria, determinar su punto de impacto en el suelo y calcular la velocidad final con la que lo impacta.
+      </p>
+      <p>
+        <strong>Datos proporcionados:</strong>
+        <ul class="list-disc pl-6">
+          <li><strong>Inclinación del techo:</strong> $\alpha = 25^\circ$ con respecto a la horizontal.</li>
+          <li><strong>Velocidad inicial en el borde del techo:</strong> $v_0 = 4 \, \text{m/s}$.</li>
+          <li><strong>Altura del borde del techo:</strong> $h = 11.4 \, \text{m}$ desde el suelo.</li>
+        </ul>
+      </p>
+      <p>
+        <strong>Objetivos de la solución:</strong>
+        <ol class="list-decimal pl-6">
+          <li>Calcular el <strong>tiempo de vuelo</strong> de la pelota (el tiempo que permanece en el aire).</li>
+          <li>Determinar el <strong>alcance horizontal</strong> (distancia desde el borde del techo al punto de impacto en el suelo).</li>
+          <li>Calcular la <strong>velocidad de impacto</strong> (magnitud y dirección) con la que la pelota golpea el suelo.</li>
+        </ol>
+      </p>
+    </section>
+
+    <section id="solution">
+      <h2 class="text-xl md:text-2xl lg:text-3xl">Solución Paso a Paso</h2>
+
+      <div>
+        <div class="step-header">
+          <h3 id="step1-title" class="text-lg md:text-xl lg:text-2xl">Paso 1: Establecimiento del Sistema de Referencia y Componentes de la Velocidad Inicial</h3>
+          <button class="explanation-btn" data-target="explanation1">¿Por qué este paso?</button>
+        </div>
+        <div id="explanation1" class="explanation-content">
+          <h4>Razón y Orden:</h4>
+          <p>
+            Definir un sistema de coordenadas es el primer y más crítico paso en cualquier problema de cinemática. Al situar el origen $(0,0)$ en el punto de lanzamiento (el borde del techo), simplificamos las ecuaciones iniciales de posición. La descomposición de la velocidad inicial en sus componentes horizontal ($v_{0x}$) y vertical ($v_{0y}$) es fundamental porque el movimiento parabólico se analiza como la superposición de un movimiento horizontal uniforme y un movimiento vertical uniformemente acelerado, los cuales se rigen por ecuaciones independientes. El ángulo de $25^\circ$ de inclinación del techo nos proporciona el ángulo de lanzamiento de la pelota respecto a la horizontal. Dado que la pelota "baja rodando", el ángulo es negativo respecto al eje X positivo.
+          </p>
+        </div>
+        <p>
+          Establecemos un sistema de coordenadas cartesianas con el origen <strong>($0,0$) en el borde del techo</strong>, en el punto de lanzamiento.
+          <ul class="list-disc pl-6">
+            <li>El eje $X$ positivo se extiende horizontalmente hacia la derecha (en la dirección del movimiento).</li>
+            <li>El eje $Y$ positivo se extiende verticalmente hacia arriba.</li>
+          </ul>
+        </p>
+        <p>
+          <strong>Condiciones Iniciales:</strong>
+          <ul class="list-disc pl-6">
+            <li>Posición inicial: $x_0 = 0 \, \text{m}$, $y_0 = 0 \, \text{m}$.</li>
+            <li>La pelota baja rodando por el techo inclinado $25^\circ$ con respecto a la horizontal. Esto implica que la velocidad inicial $v_0$ forma un ángulo de $25^\circ$ <strong>por debajo</strong> de la horizontal. Por lo tanto, el ángulo de lanzamiento es $\theta = -25^\circ$.</li>
+            <li>Magnitud de la velocidad inicial: $v_0 = 4 \, \text{m/s}$.</li>
+          </ul>
+        </p>
+        <p>
+          <strong>Descomposición de la Velocidad Inicial:</strong>
+        </p>
+        <div class="equation">
+          \[
+          v_{0x} = v_0 \cos(\theta) = 4 \cos(-25^\circ) = 4 \cos(25^\circ)
+          \]
+          \[
+          v_{0x} \approx 4 \cdot 0.9063 = 3.625 \, \text{m/s}
+          \]
+          \[
+          v_{0y} = v_0 \sin(\theta) = 4 \sin(-25^\circ) = -4 \sin(25^\circ)
+          \]
+          \[
+          v_{0y} \approx -4 \cdot 0.4226 = -1.690 \, \text{m/s}
+          \]
+        </div>
+        <p>
+          <strong>Aceleración de la Gravedad:</strong>
+          <br>
+          Consideramos la aceleración debido a la gravedad actuando únicamente en la dirección vertical. Dado que nuestro eje $Y$ positivo apunta hacia arriba, la gravedad será negativa: $g = 9.81 \, \text{m/s}^2$.
+          <br>
+          $a_x = 0 \, \text{m/s}^2$
+          <br>
+          $a_y = -g = -9.81 \, \text{m/s}^2$
+        </p>
+        <div class="flex justify-center my-6">
+          
+        </div>
+      </div>
+
+      <div>
+        <div class="step-header">
+          <h3 id="step2-title" class="text-lg md:text-xl lg:text-2xl">Paso 2: Ecuaciones Generales de Posición y Velocidad</h3>
+          <button class="explanation-btn" data-target="explanation2">¿Por qué este paso?</button>
+        </div>
+        <div id="explanation2" class="explanation-content">
+          <h4>Razón y Orden:</h4>
+          <p>
+            Las ecuaciones de posición y velocidad son las "leyes de movimiento" para nuestro proyectil. Al escribirlas en su forma general, creamos un marco que nos permitirá calcular la posición y la velocidad de la pelota en cualquier instante de tiempo $t$. Estas ecuaciones son fundamentales para resolver los objetivos específicos del problema, ya que nos permiten relacionar el tiempo con las coordenadas y las componentes de la velocidad.
+          </p>
+        </div>
+        <p>
+          Las ecuaciones cinemáticas para el movimiento de proyectiles en 2D bajo gravedad constante son:
+        </p>
+        <p>
+          <strong>Ecuaciones de Posición:</strong>
+          <br>
+          Componente $X$ (Movimiento Rectilíneo Uniforme - MRU):
+        </p>
+        <div class="equation">
+          \[
+          x(t) = x_0 + v_{0x} t + \frac{1}{2} a_x t^2
+          \]
+          Como $x_0 = 0$ y $a_x = 0$:
+          \[
+          x(t) = v_{0x} t
+          \]
+        </div>
+        <p>
+          Componente $Y$ (Movimiento Rectilíneo Uniformemente Acelerado - MRUA):
+        </p>
+        <div class="equation">
+          \[
+          y(t) = y_0 + v_{0y} t + \frac{1}{2} a_y t^2
+          \]
+          Como $y_0 = 0$ y $a_y = -g$:
+          \[
+          y(t) = v_{0y} t - \frac{1}{2} g t^2
+          \]
+        </div>
+        <p>
+          <strong>Ecuaciones de Velocidad:</strong>
+          <br>
+          Componente $X$:
+        </p>
+        <div class="equation">
+          \[
+          v_x(t) = v_{0x} + a_x t
+          \]
+          Como $a_x = 0$:
+          \[
+          v_x(t) = v_{0x}
+          \]
+        </div>
+        <p>
+          Componente $Y$:
+        </p>
+        <div class="equation">
+          \[
+          v_y(t) = v_{0y} + a_y t
+          \]
+          Como $a_y = -g$:
+          \[
+          v_y(t) = v_{0y} - g t
+          \]
+        </div>
+      </div>
+
+      <div>
+        <div class="step-header">
+          <h3 id="step3-title" class="text-lg md:text-xl lg:text-2xl">Punto 1: Cálculo del Tiempo de Vuelo</h3>
+          <button class="explanation-btn" data-target="explanation3">¿Por qué este paso?</button>
+        </div>
+        <div id="explanation3" class="explanation-content">
+          <h4>Razón y Orden:</h4>
+          <p>
+            El tiempo de vuelo es el periodo durante el cual la pelota está en el aire, desde que abandona el techo hasta que impacta el suelo. En nuestro sistema de referencia, el suelo está a una posición vertical de $y = -11.4 \, \text{m}$ (ya que el origen es el borde del techo y la altura $h$ es hacia abajo). Al sustituir esta posición final en la ecuación de posición vertical $y(t)$, obtenemos una ecuación cuadrática que nos permite resolver para el tiempo. De las dos soluciones, elegimos la positiva, ya que el tiempo de vuelo debe ser un valor positivo.
+          </p>
+        </div>
+        <p>
+          La pelota impacta el piso cuando su posición vertical es $y = -11.4 \, \text{m}$.
+          Utilizamos la ecuación de posición para la componente $Y$:
+        </p>
+        <div class="equation">
+          \[
+          y(t) = v_{0y} t - \frac{1}{2} g t^2
+          \]
+          Sustituyendo los valores:
+          \[
+          -11.4 = (-1.690) t - \frac{1}{2} (9.81) t^2
+          \]
+          \[
+          -11.4 = -1.690 t - 4.905 t^2
+          \]
+        </div>
+        <p>
+          Reorganizamos la ecuación a la forma cuadrática estándar $at^2 + bt + c = 0$:
+        </p>
+        <div class="equation">
+          \[
+          4.905 t^2 + 1.690 t - 11.4 = 0
+          \]
+        </div>
+        <p>
+          Aplicamos la fórmula cuadrática $t = \frac{-b \pm \sqrt{b^2 - 4ac}}{2a}$, con:
+          <br>
+          $a = 4.905$, $b = 1.690$, $c = -11.4$
+        </p>
+        <div class="equation">
+          \[
+          t = \frac{-(1.690) \pm \sqrt{(1.690)^2 - 4(4.905)(-11.4)}}{2(4.905)}
+          \]
+          \[
+          t = \frac{-1.690 \pm \sqrt{2.8561 + 223.692}}{9.81}
+          \]
+          \[
+          t = \frac{-1.690 \pm \sqrt{226.5481}}{9.81}
+          \]
+          \[
+          t = \frac{-1.690 \pm 15.0515}{9.81}
+          \]
+        </div>
+        <p>
+          Esto nos da dos posibles valores para $t$:
+          <br>
+          $t_1 = \frac{-1.690 + 15.0515}{9.81} = \frac{13.3615}{9.81} \approx 1.362 \, \text{s}$
+          <br>
+          $t_2 = \frac{-1.690 - 15.0515}{9.81} = \frac{-16.7415}{9.81} \approx -1.706 \, \text{s}$ (descartada, el tiempo no puede ser negativo)
+        </p>
+        <p class="text-center font-bold text-lg">
+          Por lo tanto, el tiempo de vuelo es:
+        </p>
+        <div class="equation font-bold text-2xl">
+          \[
+          \boxed{t_{vuelo} \approx 1.362 \, \text{s}}
+          \]
+        </div>
+      </div>
+
+      <div>
+        <div class="step-header">
+          <h3 id="step4-title" class="text-lg md:text-xl lg:text-2xl">Punto 2: Cálculo del Lugar de Impacto (Alcance Horizontal)</h3>
+          <button class="explanation-btn" data-target="explanation4">¿Por qué este paso?</button>
+        </div>
+        <div id="explanation4" class="explanation-content">
+          <h4>Razón y Orden:</h4>
+          <p>
+            Una vez conocido el tiempo de vuelo, determinar el alcance horizontal es directo. Simplemente sustituimos el tiempo de vuelo en la ecuación de posición horizontal $x(t)$. Esto nos da la distancia que la pelota recorre horizontalmente desde el punto de lanzamiento hasta el punto donde impacta el suelo.
+          </p>
+        </div>
+        <p>
+          Para encontrar la distancia horizontal (alcance) donde la pelota impacta, utilizamos el tiempo de vuelo en la ecuación de posición para la componente $X$:
+        </p>
+        <div class="equation">
+          \[
+          x(t) = v_{0x} t
+          \]
+        </div>
+        <p>
+          Sustituyendo los valores de $v_{0x} = 3.625 \, \text{m/s}$ y $t = 1.362 \, \text{s}$:
+        </p>
+        <div class="equation">
+          \[
+          x_{impacto} = (3.625 \, \text{m/s}) (1.362 \, \text{s})
+          \]
+          \[
+          x_{impacto} \approx 4.93705 \, \text{m}
+          \]
+        </div>
+        <p class="text-center font-bold text-lg">
+          La pelota impacta el piso a una distancia horizontal de aproximadamente:
+        </p>
+        <div class="equation font-bold text-2xl">
+          \[
+          \boxed{x_{impacto} \approx 4.937 \, \text{m}}
+          \]
+        </div>
+      </div>
+
+      <div>
+        <div class="step-header">
+          <h3 id="step5-title" class="text-lg md:text-xl lg:text-2xl">Punto 3: Cálculo de la Velocidad de Impacto</h3>
+          <button class="explanation-btn" data-target="explanation5">¿Por qué este paso?</button>
+        </div>
+        <div id="explanation5" class="explanation-content">
+          <h4>Razón y Orden:</h4>
+          <p>
+            La velocidad de impacto es un vector, lo que significa que necesitamos tanto su magnitud (rapidez) como su dirección (ángulo). Para ello, primero calculamos las componentes horizontal ($v_x$) y vertical ($v_y$) de la velocidad en el instante exacto del impacto (es decir, en el tiempo de vuelo). La componente horizontal permanece constante, mientras que la vertical se calcula usando la ecuación de velocidad vertical. Con ambas componentes, la magnitud se obtiene mediante el teorema de Pitágoras, y la dirección mediante la función arcotangente, prestando atención al cuadrante.
+          </p>
+        </div>
+        <p>
+          Para encontrar la velocidad con la que la pelota impacta el suelo, calculamos las componentes de la velocidad en el tiempo de vuelo ($t = 1.362 \, \text{s}$).
+        </p>
+        <p>
+          <strong>Componente $X$ de la velocidad ($v_x$):</strong>
+          <br>
+          La velocidad horizontal es constante durante todo el movimiento:
+        </p>
+        <div class="equation">
+          \[
+          v_x = v_{0x} = 3.625 \, \text{m/s}
+          \]
+        </div>
+        <p>
+          <strong>Componente $Y$ de la velocidad ($v_y$):</strong>
+          <br>
+          Usamos la ecuación de velocidad para la componente $Y$:
+        </p>
+        <div class="equation">
+          \[
+          v_y = v_{0y} - g t
+          \]
+          \[
+          v_y = -1.690 \, \text{m/s} - (9.81 \, \text{m/s}^2)(1.362 \, \text{s})
+          \]
+          \[
+          v_y = -1.690 - 13.36242
+          \]
+          \[
+          v_y \approx -15.052 \, \text{m/s}
+          \]
+        </div>
+        <p>
+          <strong>Magnitud de la Velocidad de Impacto ($|\vec{v}|$):</strong>
+          <br>
+          Usamos el teorema de Pitágoras para combinar las componentes:
+        </p>
+        <div class="equation">
+          \[
+          |\vec{v}| = \sqrt{v_x^2 + v_y^2}
+          \]
+          \[
+          |\vec{v}| = \sqrt{(3.625)^2 + (-15.052)^2}
+          \]
+          \[
+          |\vec{v}| = \sqrt{13.140625 + 226.562704}
+          \]
+          \[
+          |\vec{v}| = \sqrt{239.703329}
+          \]
+        </div>
+        <p class="text-center font-bold text-lg">
+          La magnitud de la velocidad de impacto es:
+        </p>
+        <div class="equation font-bold text-2xl">
+          \[
+          \boxed{|\vec{v}_{impacto}| \approx 15.482 \, \text{m/s}}
+          \]
+        </div>
+        <p>
+          <strong>Dirección de la Velocidad de Impacto ($\phi$):</strong>
+          <br>
+          Calculamos el ángulo con respecto a la horizontal usando la función arcotangente (<code>atan2</code> es preferible para manejar los cuadrantes correctamente):
+        </p>
+        <div class="equation">
+          \[
+          \phi = \arctan\left(\frac{v_y}{v_x}\right)
+          \]
+          \[
+          \phi = \arctan\left(\frac{-15.052}{3.625}\right)
+          \]
+          \[
+          \phi = \arctan(-4.152)
+          \]
+        </div>
+        <p class="text-center font-bold text-lg">
+          La dirección de la velocidad de impacto es:
+        </p>
+        <div class="equation font-bold text-2xl">
+          \[
+          \boxed{\phi \approx -76.46^\circ}
+          \]
+        </div>
+        <p>
+          Esto significa que la pelota impacta el piso con una velocidad de aproximadamente $15.482 \, \text{m/s}$ en una dirección de $76.46^\circ$ por debajo de la horizontal.
+        </p>
+      </div>
+    </section>
+
+    <section id="animation-section">
+        <h2 class="text-xl md:text-2xl lg:text-3xl">Simulación Interactiva del Lanzamiento</h2>
+        <p>Visualiza la trayectoria de la pelota desde el borde del techo hasta el suelo. Puedes iniciar o reiniciar la simulación en cualquier momento para observar el movimiento.</p>
+        <div id="canvas-container" aria-label="Visualización animada de la trayectoria de la pelota con ejes de coordenadas y datos clave." role="img">
+          </div>
+        <div class="flex justify-center">
+          <button id="reset-btn" aria-label="Reiniciar animación">Reiniciar Simulación</button>
+        </div>
+    </section>
+
+    <section id="conclusion">
+      <h2 class="text-xl md:text-2xl lg:text-3xl">Conclusión y Resultados Finales</h2>
+      <p>
+        A través de la aplicación de los principios fundamentales del movimiento parabólico, hemos determinado las características clave de la trayectoria de la pelota:
+      </p>
+      <ol class="list-decimal pl-6 font-semibold">
+        <li><strong>Tiempo de Vuelo:</strong> La pelota permanece en el aire durante aproximadamente $\boxed{1.362 \, \text{s}}$.</li>
+        <li><strong>Lugar de Impacto:</strong> La pelota aterriza a una distancia horizontal de aproximadamente $\boxed{4.937 \, \text{m}}$ desde el punto de lanzamiento en el borde del techo.</li>
+        <li><strong>Velocidad de Impacto:</strong> La pelota golpea el suelo con una magnitud de velocidad de aproximadamente $\boxed{15.482 \, \text{m/s}}$ en una dirección de $\boxed{-76.46^\circ}$ (lo que significa $76.46^\circ$ por debajo de la horizontal).</li>
+      </ol>
+      <p class="mt-4 text-center text-sm text-gray-500">
+        Este análisis demuestra cómo las ecuaciones de la cinemática en dos dimensiones nos permiten predecir el comportamiento de los proyectiles en el aire.
+      </p>
+    </section>
+  </div
+  <script>
+    // Variables del problema (constantes)
+    const v0 = 4; // m/s - Velocidad inicial
+    const alpha_deg = 25; // grados - Ángulo de inclinación del techo (y lanzamiento)
+    const h = 11.4; // m - Altura del borde del techo desde el suelo
+    const g = 9.81; // m/s^2 - Aceleración de la gravedad
+
+    // --------------------------------------------------
+    // CÁLCULOS FÍSICOS
+    // --------------------------------------------------
+
+    // Convertir el ángulo a radianes y aplicar el signo negativo (debajo de la horizontal)
+    const alpha_rad = -p5.prototype.radians(alpha_deg);
+    // Descomposición de la velocidad inicial en componentes x e y
+    const v0x = v0 * p5.prototype.cos(alpha_rad);
+    const v0y = v0 * p5.prototype.sin(alpha_rad);
+
+    // 1. Cálculo del Tiempo de Vuelo
+    // Ecuación de posición vertical: y(t) = v0y * t - 0.5 * g * t^2
+    // En el impacto, y(t) = -h
+    // -h = v0y * t - 0.5 * g * t^2
+    // Reorganizando a forma cuadrática: (0.5 * g)t^2 - (v0y)t - h = 0
+    const a_quadratic = 0.5 * g;
+    const b_quadratic = -v0y;
+    const c_quadratic = -h;
+    // Discriminante para la fórmula cuadrática
+    const discriminant = b_quadratic * b_quadratic - 4 * a_quadratic * c_quadratic;
+    // Usamos solo la raíz positiva para el tiempo
+    const t_vuelo = (-b_quadratic + p5.prototype.sqrt(discriminant)) / (2 * a_quadratic);
+
+    // 2. Cálculo del Lugar de Impacto (Alcance Horizontal)
+    // Ecuación de posición horizontal: x(t) = v0x * t
+    const x_impacto = v0x * t_vuelo;
+
+    // 3. Cálculo de la Velocidad de Impacto (Magnitud y Dirección)
+    // Componente horizontal de la velocidad (constante)
+    const vx_impacto = v0x;
+    // Componente vertical de la velocidad en el momento del impacto
+    const vy_impacto = v0y - g * t_vuelo;
+    // Magnitud de la velocidad resultante (teorema de Pitágoras)
+    const v_impacto_magnitud = p5.prototype.sqrt(vx_impacto * vx_impacto + vy_impacto * vy_impacto);
+    // Dirección de la velocidad (usando atan2 para cuadrantes correctos)
+    const v_impacto_angulo_rad = p5.prototype.atan2(vy_impacto, vx_impacto);
+    const v_impacto_angulo_deg = p5.prototype.degrees(v_impacto_angulo_rad);
+
+    // --------------------------------------------------
+    // VARIABLES PARA LA SIMULACIÓN p5.js
+    // --------------------------------------------------
+    let t = 0; // Tiempo actual de la simulación
+    let path = []; // Array para almacenar los puntos de la trayectoria
+    const ballRadiusPhysics = 0.3; // Radio de la pelota en metros (valor físico)
+    let simulationSpeed = 1.0; // Factor para ajustar la velocidad de la simulación (1.0 = tiempo real)
+
+    // Variables de escalado y origen del canvas
+    let scalePhysicsToCanvas; // Escala común para x e y para mantener la proporción
+    let canvasOriginX, canvasOriginY; // Coordenadas del origen físico (0,0) en el canvas
+
+    // --------------------------------------------------
+    // FUNCIONES p5.js
+    // --------------------------------------------------
+
+    function setup() {
+      const container = document.getElementById('canvas-container');
+      // Crear el lienzo p5.js y asignarlo al contenedor
+      const p5Canvas = createCanvas(container.clientWidth, container.clientHeight);
+      p5Canvas.parent('canvas-container'); // Asocia el canvas al div
+
+      // Recalcular métricas de escala y origen al inicio y al redimensionar
+      recalculateCanvasMetrics();
+
+      // Añadir listener para el botón de reinicio
+      document.getElementById('reset-btn').addEventListener('click', resetAnimation);
+
+      // Añadir listener para el redimensionamiento de la ventana
+      window.addEventListener('resize', () => {
+        // Asegurarse de que el canvas se redimensiona con el contenedor
+        resizeCanvas(container.clientWidth, container.clientHeight);
+        recalculateCanvasMetrics();
+      });
+
+      resetAnimation(); // Iniciar la simulación al cargar
+    }
+
+    // Calcula la escala y el origen del sistema de coordenadas para que el movimiento quepa en el canvas
+    function recalculateCanvasMetrics() {
+        const marginRatio = 0.1; // 10% de margen a cada lado del canvas
+        const effectiveWidth = width * (1 - 2 * marginRatio);
+        const effectiveHeight = height * (1 - 2 * marginRatio);
+
+        // Calcular la altura máxima alcanzada si v0y es positivo (para el rango Y)
+        let maxHeightReached = 0;
+        if (v0y > 0) {
+            const t_peak = v0y / g;
+            maxHeightReached = v0y * t_peak - 0.5 * g * t_peak * t_peak;
+        }
+        // El rango total vertical en el sistema físico va desde -h (suelo) hasta maxHeightReached (pico, si aplica)
+        const totalYRangePhysics = h + maxHeightReached;
+
+        // El rango total horizontal en el sistema físico va desde 0 hasta x_impacto (más un pequeño extra)
+        const totalXRangePhysics = x_impacto * 1.1; // Añadir un 10% extra para visibilidad
+
+        // Calcular escalas para X y Y individualmente
+        const scaleX = effectiveWidth / totalXRangePhysics;
+        const scaleY = effectiveHeight / totalYRangePhysics;
+
+        // Usar la escala más pequeña para mantener la proporción y asegurar que todo quepa
+        scalePhysicsToCanvas = min(scaleX, scaleY);
+
+        // Definir el origen del sistema de coordenadas físicas (0,0) en el canvas
+        // El suelo (y = -h en física) debe estar cerca del borde inferior del canvas.
+        // La posición y del suelo en canvas: physicsToCanvasY(-h) = height - (height * marginRatio)
+        // Sabemos que physicsToCanvasY(y_physics) = canvasOriginY - y_physics * scalePhysicsToCanvas
+        // Entonces: height * (1 - marginRatio) = canvasOriginY - (-h * scalePhysicsToCanvas)
+        // canvasOriginY = height * (1 - marginRatio) - h * scalePhysicsToCanvas
+        canvasOriginY = (height * (1 - marginRatio)) - (h * scalePhysicsToCanvas);
+
+        // El inicio (x = 0 en física) debe estar cerca del borde izquierdo del canvas.
+        // La posición x del origen en canvas: physicsToCanvasX(0) = width * marginRatio
+        // Sabemos que physicsToCanvasX(x_physics) = canvasOriginX + x_physics * scalePhysicsToCanvas
+        // Entonces: canvasOriginX = width * marginRatio
+        canvasOriginX = width * marginRatio;
+    }
+
+    // Convierte una coordenada X del sistema físico a una coordenada X para el canvas
+    function physicsToCanvasX(x_physics) {
+      return canvasOriginX + x_physics * scalePhysicsToCanvas;
+    }
+
+    // Convierte una coordenada Y del sistema físico a una coordenada Y para el canvas
+    // Nota: El eje Y del canvas va de arriba a abajo, mientras que el eje Y físico va de abajo a arriba.
+    function physicsToCanvasY(y_physics) {
+      return canvasOriginY - y_physics * scalePhysicsToCanvas;
+    }
+
+    // Función principal de dibujo de p5.js (se llama repetidamente)
+    function draw() {
+      background(var_to_p5_color('--canvas-bg')); // Fondo del canvas
+
+      // Dibujar el techo (representación simplificada)
+      drawRoof();
+
+      // Dibujar el suelo
+      drawGround();
+
+      // Dibujar el sistema de referencia (ejes X e Y)
+      drawAxes();
+
+      // Calcular la posición actual de la pelota en el tiempo de la simulación
+      let current_x = v0x * t;
+      let current_y = v0y * t - 0.5 * g * t * t;
+
+      // Si la pelota aún no ha impactado el suelo o está muy cerca del impacto, añadir el punto a la trayectoria
+      if (current_y >= -h - 0.05 && t <= t_vuelo + 0.05) { // Pequeño margen para capturar el punto de impacto
+        path.push({ x: current_x, y: current_y });
+      } else if (path.length > 0 && path[path.length - 1].y > -h) {
+          // Asegurarse de que el último punto de la trayectoria sea exactamente en el suelo
+          path.push({ x: x_impacto, y: -h });
+      }
+      
+      // Dibujar la trayectoria acumulada
+      drawPath();
+
+      // Dibujar la pelota en su posición actual
+      drawBall(current_x, current_y);
+
+      // Dibujar el vector de velocidad inicial brevemente al principio
+      if (t < 0.1) {
+        drawVector(0, 0, v0x, v0y, var_to_p5_color('--vector-initial-color'), `v₀ = ${v0.toFixed(1)} m/s`);
+      }
+
+      // Dibujar el vector de velocidad en el impacto cuando la pelota está cerca del suelo
+      if (t >= t_vuelo - 0.05 && t <= t_vuelo + 0.05) {
+        drawVector(current_x, current_y, vx_impacto, vy_impacto, var_to_p5_color('--vector-impact-color'), `v_impacto`);
+      }
+
+      // Mostrar los valores clave y el tiempo actual en la esquina del canvas
+      displayInfoText(current_x, current_y);
+
+      // Actualizar el tiempo de la simulación
+      t += 0.01 * simulationSpeed; // El factor 0.01 es el paso de tiempo por frame
+
+      // Reiniciar la animación una vez que la pelota ha impactado y pasado un tiempo
+      if (t > t_vuelo + 1.5) { // Espera 1.5 segundos después del impacto
+        resetAnimation();
+      }
+    }
+
+    // Dibuja la representación del techo
+    function drawRoof() {
+      push();
+      fill(var_to_p5_color('--roof-color'));
+      noStroke();
+      const roofAngleRad = p5.prototype.radians(alpha_deg);
+      const roofLengthPhysics = 6; // Longitud del techo para visualización
+      const roofThicknessPhysics = 0.5; // Grosor del techo en metros
+
+      // Puntos del polígono que representa el techo
+      const p1x = -roofLengthPhysics * p5.prototype.cos(roofAngleRad);
+      const p1y = roofLengthPhysics * p5.prototype.sin(roofAngleRad);
+      const p2x = 0; // Borde del techo (origen físico X)
+      const p2y = 0; // Borde del techo (origen físico Y)
+
+      const p3x = p2x + roofThicknessPhysics * p5.prototype.sin(roofAngleRad);
+      const p3y = p2y - roofThicknessPhysics * p5.prototype.cos(roofAngleRad);
+
+      const p4x = p1x + roofThicknessPhysics * p5.prototype.sin(roofAngleRad);
+      const p4y = p1y - roofThicknessPhysics * p5.prototype.cos(roofAngleRad);
+
+      quad(
+        physicsToCanvasX(p1x), physicsToCanvasY(p1y),
+        physicsToCanvasX(p2x), physicsToCanvasY(p2y),
+        physicsToCanvasX(p3x), physicsToCanvasY(p3y),
+        physicsToCanvasX(p4x), physicsToCanvasY(p4y)
+      );
+      pop();
+    }
+
+    // Dibuja el suelo
+    function drawGround() {
+      push();
+      fill(var_to_p5_color('--ground-color'));
+      noStroke();
+      // El suelo está en y = -h en coordenadas físicas
+      rect(0, physicsToCanvasY(-h), width, height - physicsToCanvasY(-h));
+      pop();
+    }
+
+    // Dibuja los ejes de coordenadas
+    function drawAxes() {
+      push();
+      stroke(var_to_p5_color('--axis-color'));
+      strokeWeight(1);
+      // Eje X (horizontal en y=0, el borde del techo)
+      line(0, physicsToCanvasY(0), width, physicsToCanvasY(0));
+      // Eje Y (vertical en x=0, el borde del techo)
+      line(physicsToCanvasX(0), 0, physicsToCanvasX(0), height);
+
+      // Etiquetas para los ejes
+      fill(var_to_p5_color('--text-secondary'));
+      textSize(10);
+      textAlign(RIGHT, CENTER);
+      text('X (+)', width - 5, physicsToCanvasY(0) + 15);
+      textAlign(CENTER, TOP);
+      text('Y (+)', physicsToCanvasX(0) + 15, 5);
+      pop();
+    }
+
+    // Dibuja la trayectoria de la pelota
+    function drawPath() {
+      push();
+      noFill();
+      stroke(var_to_p5_color('--path-color'));
+      strokeWeight(2);
+      beginShape();
+      for (let i = 0; i < path.length; i++) {
+        vertex(physicsToCanvasX(path[i].x), physicsToCanvasY(path[i].y));
+      }
+      endShape();
+      pop();
+    }
+
+    // Dibuja la pelota
+    function drawBall(x, y) {
+      push();
+      fill(var_to_p5_color('--ball-color'));
+      noStroke();
+      // El diámetro de la pelota se escala. Usamos el radio físico y lo multiplicamos por 2 para el diámetro
+      // y luego por la escala común para convertir a píxeles.
+      const ballDiameterCanvas = ballRadiusPhysics * 2 * scalePhysicsToCanvas;
+      ellipse(physicsToCanvasX(x), physicsToCanvasY(y), ballDiameterCanvas, ballDiameterCanvas);
+      pop();
+    }
+
+    // Dibuja un vector con punta de flecha y etiqueta
+    function drawVector(startX_physics, startY_physics, vecX_physics, vecY_physics, c, label) {
+      push();
+      stroke(c);
+      strokeWeight(2);
+      fill(c);
+
+      const startX_canvas = physicsToCanvasX(startX_physics);
+      const startY_canvas = physicsToCanvasY(startY_physics);
+      const endX_canvas = startX_canvas + vecX_physics * scalePhysicsToCanvas;
+      const endY_canvas = startY_canvas - vecY_physics * scalePhysicsToCanvas; // Y en canvas es inverso
+
+      line(startX_canvas, startY_canvas, endX_canvas, endY_canvas);
+
+      // Dibujar punta de flecha
+      const angle = p5.prototype.atan2(endY_canvas - startY_canvas, endX_canvas - startX_canvas);
+      const arrowSize = 8;
+      push(); // Guardar el estado actual de transformación
+      translate(endX_canvas, endY_canvas);
+      rotate(angle);
+      triangle(0, arrowSize / 2, 0, -arrowSize / 2, arrowSize, 0);
+      pop(); // Restaurar el estado anterior de transformación
+
+      // Etiqueta del vector
+      if (label) {
+        push(); // Guardar el estado para el texto
+        fill('rgba(0, 0, 0, 0.6)'); // Fondo para el texto
+        const textOffset = arrowSize + 4;
+        textSize(10);
+        textAlign(LEFT, CENTER);
+        // Calcular ancho del texto para el fondo
+        const textWidthVal = textWidth(label);
+        const textHeightVal = 16;
+        
+        // Dibujar el fondo del texto
+        rect(endX_canvas + textOffset, endY_canvas - textHeightVal / 2, textWidthVal + 8, textHeightVal);
+        
+        // Dibujar el texto
+        fill(c);
+        text(label, endX_canvas + textOffset + 4, endY_canvas);
+        pop(); // Restaurar el estado para el texto
+      }
+      pop();
+    }
+
+    // Muestra información de texto en la esquina del canvas
+    function displayInfoText(current_x, current_y) {
+      push();
+      fill(255);
+      textSize(10);
+      textAlign(LEFT, TOP);
+      const textX = 15; // Un poco más de margen
+      let textY = 15;
+      const lineSpacing = 18;
+
+      text(`Velocidad inicial (v₀): ${v0.toFixed(1)} m/s, Ángulo (θ): ${alpha_deg}°`, textX, textY);
+      textY += lineSpacing;
+      text(`Componentes iniciales: vx₀: ${v0x.toFixed(2)} m/s, vy₀: ${v0y.toFixed(2)} m/s`, textX, textY);
+      textY += lineSpacing;
+      text(`Altura del techo (h): ${h.toFixed(1)} m`, textX, textY);
+      textY += lineSpacing;
+      text(`Gravedad (g): ${g.toFixed(2)} m/s²`, textX, textY);
+      textY += lineSpacing * 1.5; // Espacio extra
+
+      fill(var_to_p5_color('--highlight-color'));
+      text(`Tiempo de simulación: ${t.toFixed(2)} s`, textX, textY);
+      textY += lineSpacing;
+      text(`Posición actual: X: ${current_x.toFixed(2)} m, Y: ${current_y.toFixed(2)} m`, textX, textY);
+
+      // Mostrar resultados finales una vez que la simulación ha llegado o pasado el tiempo de vuelo
+      if (t >= t_vuelo) {
+          fill(var_to_p5_color('--heading-color-3')); // Un color distinto para los resultados
+          textSize(11);
+          textY += lineSpacing * 1.5;
+          text(`Resultados del Cálculo:`, textX, textY);
+          textY += lineSpacing;
+          text(`Tiempo de vuelo: ${t_vuelo.toFixed(3)} s`, textX, textY);
+          textY += lineSpacing;
+          text(`Alcance horizontal: ${x_impacto.toFixed(3)} m`, textX, textY);
+          textY += lineSpacing;
+          text(`Velocidad de impacto: ${v_impacto_magnitud.toFixed(3)} m/s`, textX, textY);
+          textY += lineSpacing;
+          text(`Ángulo de impacto: ${v_impacto_angulo_deg.toFixed(2)}°`, textX, textY);
+      }
+      pop();
+    }
+
+    // Reinicia el estado de la animación
+    function resetAnimation() {
+      t = 0;
+      path = []; // Limpiar la trayectoria para una nueva simulación
+    }
+
+    // Función auxiliar para obtener colores de las variables CSS para p5.js
+    function var_to_p5_color(cssVarName) {
+      const rootStyle = getComputedStyle(document.documentElement);
+      const cssColor = rootStyle.getPropertyValue(cssVarName).trim();
+      return color(cssColor);
+    }
+
+    // --------------------------------------------------
+    // LÓGICA PARA BOTONES DE EXPLICACIÓN (CONTENIDO COLAPSABLE)
+    // --------------------------------------------------
+    document.addEventListener('DOMContentLoaded', () => {
+      const explanationButtons = document.querySelectorAll('.explanation-btn');
+
+      explanationButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const targetId = button.dataset.target;
+          const explanationContent = document.getElementById(targetId);
+
+          if (explanationContent.style.display === 'block') {
+            // Si ya está abierto, cerrarlo
+            explanationContent.style.display = 'none';
+            button.textContent = '¿Por qué este paso?';
+          } else {
+            // Cerrar todas las otras explicaciones abiertas
+            document.querySelectorAll('.explanation-content').forEach(content => {
+              if (content !== explanationContent) {
+                content.style.display = 'none';
+              }
+            });
+            // Restablecer el texto de los otros botones
+            document.querySelectorAll('.explanation-btn').forEach(btn => {
+                if (btn !== button) {
+                    btn.textContent = '¿Por qué este paso?';
+                }
+            });
+
+            // Abrir la explicación actual
+            explanationContent.style.display = 'block';
+            button.textContent = 'Ocultar explicación';
+          }
+        });
+      });
+    });
+  </script>
+</body>
+</html>
